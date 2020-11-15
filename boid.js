@@ -1,6 +1,19 @@
 
+function distance(boid1, boid2, dp){
+    if(boid1.id > boid2.id){
+        return distance(boid2, boid1, dp);
+    }
+    let key = boid1.id+" " + boid2.id
+    if(dp.has(key)){
+        return dp.get(key);
+    }
+    else{
+        dp.set(key, dist(boid1.position.x, boid1.position.y, boid2.position.x, boid2.position.y));
+        return dp.get(key);
+    }
+}
 class Boid {
-    constructor(e) {
+    constructor(e, id) {
 
         if (!e) {
             this.position = createVector(random(width), random(height));
@@ -8,26 +21,27 @@ class Boid {
         if (e) {
             this.position = createVector(e.mouseX, e.mouseY);
         }
-        
+
         this.velocity = p5.Vector.random2D();
         this.velocity.setMag(random(4, 8));
         this.acceleration = createVector();
         this.maxForce = 0.2;
         this.maxSpeed = 4;
         this.r = 5;
+        this.id = id;
     }
 
 
 
-    align(boids) {
+    align(boids, dp) {
+        
         let sf = createVector();
         let total = 0;
         let perceptionRadius = 25;
-        let copy = [...boids];
 
-
-        for (let boid of copy) {
-            let d = dist(boid.position.x, boid.position.y, this.position.x, this.position.y);
+        for (let boid of boids) {
+            if(boid === this ) continue;
+            let d = distance(boid, this, dp);
             if (boid != this && d <= perceptionRadius) {
                 sf.add(boid.velocity);
                 total++;
@@ -44,14 +58,15 @@ class Boid {
         return sf;
     }
 
-    cohesion(boids) {
-        let copy = [...boids]
+    cohesion(boids, dp) {
+
         let sf = createVector();
         let total = 0;
         let perceptionRadius = 50;
 
-        for (let boid of copy) {
-            let d = dist(boid.position.x, boid.position.y, this.position.x, this.position.y);
+        for (let boid of boids) {
+            if(boid === this ) continue
+            let d = distance(boid, this, dp);
             if (boid != this && d <= perceptionRadius) {
                 sf.add(boid.position);
                 total++;
@@ -69,14 +84,14 @@ class Boid {
         return sf;
     }
 
-    separation(boids) {
-        let copy = [...boids];
-
+    separation(boids, dp) {
+        
         let sf = createVector();
         let total = 0;
         let perceptionRadius = 24;
-        for (let boid of copy) {
-            let d = dist(boid.position.x, boid.position.y, this.position.x, this.position.y);
+        for (let boid of boids) {
+            if(boid === this ) continue
+            let d = distance(boid, this, dp);
             if (boid != this && d <= perceptionRadius) {
                 let diff = p5.Vector.sub(this.position, boid.position);
                 diff.div(d);
@@ -108,10 +123,10 @@ class Boid {
         }
     }
 
-    flock(boids) {
-        let steering = this.align(boids);
-        let cohesion = this.cohesion(boids);
-        let separation = this.separation(boids);
+    flock(boids, dp) {
+        let steering = this.align(boids, dp);
+        let cohesion = this.cohesion(boids, dp);
+        let separation = this.separation(boids, dp);
 
         separation.mult(Number.parseInt(separationSlider.value));
         cohesion.mult(Number.parseInt(cohesionSlider.value));
@@ -137,7 +152,6 @@ class Boid {
         translate(this.position.x, this.position.y);
         rotate(theta);
         beginShape();
-        
         vertex(0, -this.r * 2);
         vertex(-this.r, this.r * 2);
         vertex(this.r, this.r * 2);

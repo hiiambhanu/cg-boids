@@ -1,6 +1,8 @@
 const flock = [];
 let alignSlider, cohesionSlider, separationSlider, count;
-let img
+let img;
+let id = 0;
+
 
 function setup() {
 
@@ -16,18 +18,21 @@ function setup() {
    
 
     for (var i = 0; i < 10; i++) {
-        flock.push(new Boid());
+        flock.push(new Boid({}, id++));
     }
 
 }
 
 function draw() {
     background(0);
+    let dp = new Map();
     for (let boid of flock) {
-        boid.flock(flock);
+        var snapshot = [...flock];
+        boid.flock(snapshot, dp);
         boid.update();
         boid.show();
     }
+    delete dp;
 }
 
 function mouseDragged(e){
@@ -35,6 +40,6 @@ function mouseDragged(e){
         return false;
     }
     
-    flock.push(new Boid({mouseX, mouseY}));
+    flock.push(new Boid({mouseX, mouseY}, id++));
     count.innerHTML = flock.length;
 }
