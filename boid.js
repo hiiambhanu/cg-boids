@@ -1,19 +1,22 @@
 
 function distance(boid1, boid2, dp){
-    if(boid1.id > boid2.id){
-        return distance(boid2, boid1, dp);
-    }
-    let key = boid1.id+" " + boid2.id
-    if(dp.has(key)){
-        return dp.get(key);
-    }
-    else{
-        dp.set(key, dist(boid1.position.x, boid1.position.y, boid2.position.x, boid2.position.y));
-        return dp.get(key);
-    }
+
+    return dist(boid1.position.x, boid1.position.y, boid2.position.x, boid2.position.y)
+    
+    // if(boid1.id > boid2.id){
+    //     return distance(boid2, boid1, dp);
+    // }
+    // let key = boid1.id + " " + boid2.id
+    // if(dp.has(key)){
+    //     return dp.get(key);
+    // }
+    // else{
+    //     dp.set(key, dist(boid1.position.x, boid1.position.y, boid2.position.x, boid2.position.y));
+    //     return dp.get(key);
+    // }
 }
 class Boid {
-    constructor(e, id) {
+    constructor(e) {
 
         if (!e) {
             this.position = createVector(random(width), random(height));
@@ -28,7 +31,8 @@ class Boid {
         this.maxForce = 0.2;
         this.maxSpeed = 4;
         this.r = 5;
-        this.id = id;
+        this.perceptionRadius = 3;
+
     }
 
 
@@ -41,11 +45,11 @@ class Boid {
 
         for (let boid of boids) {
             if(boid === this ) continue;
-            let d = distance(boid, this, dp);
-            if (boid != this && d <= perceptionRadius) {
+            // let d = distance(boid, this, dp);
+            // if (boid != this && d <= perceptionRadius) {
                 sf.add(boid.velocity);
                 total++;
-            }
+            // }
         }
 
         if (total > 0) {
@@ -67,10 +71,10 @@ class Boid {
         for (let boid of boids) {
             if(boid === this ) continue
             let d = distance(boid, this, dp);
-            if (boid != this && d <= perceptionRadius) {
+            // if (boid != this && d <= perceptionRadius) {
                 sf.add(boid.position);
                 total++;
-            }
+            // }
         }
 
         if (total > 0) {
@@ -124,9 +128,15 @@ class Boid {
     }
 
     flock(boids, dp) {
-        let steering = this.align(boids, dp);
-        let cohesion = this.cohesion(boids, dp);
-        let separation = this.separation(boids, dp);
+
+        let nearby = qt.query(new Rectangle(this.position.x, this.position.y, this.perceptionRadius, this.perceptionRadius));
+
+        // console.log(nearby.length);
+
+        
+        let steering = this.align(nearby, dp);
+        let cohesion = this.cohesion(nearby, dp);
+        let separation = this.separation(nearby, dp);
 
         separation.mult(Number.parseInt(separationSlider.value));
         cohesion.mult(Number.parseInt(cohesionSlider.value));

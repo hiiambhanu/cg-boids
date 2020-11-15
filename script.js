@@ -1,29 +1,56 @@
 const flock = [];
-let alignSlider, cohesionSlider, separationSlider, count;
-let img;
-let id = 0;
+let alignSlider, cohesionSlider, separationSlider, count, fps;
+
+var qt;
+
+
+function insertBoid(e) {
+    let boid;
+    if (!e) {
+        boid = new Boid();
+
+    }
+    else {
+        boid = new Boid({ mouseX, mouseY });
+    }
+
+    if(qt.insert(boid)){
+        flock.push(boid);
+    }
+    // flock.push(boid);
+    // qt.insert(boid);
+    // return true;
+
+}
 
 
 function setup() {
+    createCanvas(800, 600);
 
     alignSlider = document.getElementById('alignSlider');
     cohesionSlider = document.getElementById('cohesionSlider');
     separationSlider = document.getElementById('separationSlider');
     count = document.getElementById('count');
+    fps = document.getElementById('fps');
 
-    img = loadImage('./bird.png'); // 
 
-    var canvas = createCanvas(800, 600);
+    let boundary = new Rectangle(600, 600, 600, 600);
+    qt = new QuadTree(boundary, 30);
 
-   
+
 
     for (var i = 0; i < 10; i++) {
-        flock.push(new Boid({}, id++));
+        insertBoid();
     }
+
+    count.innerHTML = ` ${flock.length}, ${qt.calc()}`;
 
 }
 
+
+
 function draw() {
+    fps.innerHTML = frameRate();
     background(0);
     let dp = new Map();
     for (let boid of flock) {
@@ -35,11 +62,12 @@ function draw() {
     delete dp;
 }
 
-function mouseDragged(e){
-    if(e.target !== canvas ){
+function mouseDragged(e) {
+    if (e.target !== canvas) {
         return false;
     }
-    
-    flock.push(new Boid({mouseX, mouseY}, id++));
-    count.innerHTML = flock.length;
+
+    insertBoid(e);
+
+    count.innerHTML = ` ${flock.length}, ${qt.calc()}`;
 }
