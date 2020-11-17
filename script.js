@@ -1,5 +1,5 @@
 const flock = [];
-let alignSlider, cohesionSlider, separationSlider, count, fps;
+let alignSlider, cohesionSlider, separationSlider, count, fps, qcount, showQuadTree;
 
 var qt;
 
@@ -13,13 +13,9 @@ function insertBoid(e) {
     else {
         boid = new Boid({ mouseX, mouseY });
     }
-
-    if(qt.insert(boid)){
-        flock.push(boid);
-    }
-    // flock.push(boid);
-    // qt.insert(boid);
-    // return true;
+    flock.push(boid);
+    qt.insert(boid);
+    return true;
 
 }
 
@@ -28,18 +24,20 @@ function setup() {
     createCanvas(800, 600);
 
     alignSlider = document.getElementById('alignSlider');
+    showQuadTree = document.getElementById('quadtree');
     cohesionSlider = document.getElementById('cohesionSlider');
     separationSlider = document.getElementById('separationSlider');
     count = document.getElementById('count');
+    qcount = document.getElementById('qcount');
     fps = document.getElementById('fps');
 
 
-    let boundary = new Rectangle(600, 600, 600, 600);
-    qt = new QuadTree(boundary, 30);
+    let boundary = new Rectangle(400, 300, 400, 300);
+    qt = new QuadTree(boundary, 3);
 
 
 
-    for (var i = 0; i < 10; i++) {
+    for (var i = 0; i < 45; i++) {
         insertBoid();
     }
 
@@ -51,7 +49,21 @@ function setup() {
 
 function draw() {
     fps.innerHTML = frameRate();
+    let boundary = new Rectangle(400, 300, 400, 300);
+
+    qt = new QuadTree(boundary, 2);
+    for (let boid of flock) {
+        qt.insert(boid);
+    }
+
+
+
+
     background(0);
+
+    if (showQuadTree.checked)
+        qt.show();
+
     let dp = new Map();
     for (let boid of flock) {
         var snapshot = [...flock];
@@ -66,8 +78,6 @@ function mouseDragged(e) {
     if (e.target !== canvas) {
         return false;
     }
-
     insertBoid(e);
-
     count.innerHTML = ` ${flock.length}, ${qt.calc()}`;
 }

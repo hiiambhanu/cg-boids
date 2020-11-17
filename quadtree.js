@@ -10,7 +10,8 @@ class Rectangle {
         return !(range.x - range.w > this.x + this.w ||
             range.x + range.w < this.x - this.w ||
             range.y - range.h > this.y + this.h ||
-            range.y + range.h < this.y - this.h);
+            range.y + range.h < this.y - this.h
+        );
     }
 
     contains(boid) {
@@ -18,13 +19,25 @@ class Rectangle {
             boid.position.y >= this.y - this.h && boid.position.y <= this.y + this.h);
     }
 }
-
 class QuadTree {
     constructor(boundary, capacity) {
         this.boids = [];
         this.capacity = capacity;
         this.subdivided = false;
         this.boundary = boundary;
+    }
+
+    show() {
+        stroke(255);
+        noFill();
+        rectMode(CENTER);
+        rect(this.boundary.x, this.boundary.y, this.boundary.w * 2, this.boundary.h * 2);
+        if (this.subdivided) {
+            this.northWest.show();
+            this.northEast.show();
+            this.southWest.show();
+            this.southEast.show();
+        }
     }
 
     calc() {
@@ -35,9 +48,11 @@ class QuadTree {
 
     query(range, found) {
         if (!found) found = [];
+
         if (!this.boundary.overlaps(range)) {
             return found;
         }
+
         found.push(...this.boids);
 
         if (this.subdivided) {
@@ -56,21 +71,16 @@ class QuadTree {
 
     subdivide() {
         this.subdivided = true;
-        let [x, y, w, h] = [this.boundary.x, this.boundary.y, this.boundary.w, this.boundary.h];
+        let [x, y, w, h] = [this.boundary.x, this.boundary.y, this.boundary.w / 2, this.boundary.h / 2];
 
-        let nw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
-        this.northWest = new QuadTree(nw, this.capacity);
-
-        let ne = new Rectangle(x + w / 2, y - h / 2, w / 2, h / 2);
+        let ne = new Rectangle(x + w, y - h, w, h);
         this.northEast = new QuadTree(ne, this.capacity);
-
-        let se = new Rectangle(x - w / 2, y + h / 2, w / 2, h / 2);
+        let nw = new Rectangle(x - w, y - h, w, h);
+        this.northWest = new QuadTree(nw, this.capacity);
+        let se = new Rectangle(x + w, y + h, w, h);
         this.southEast = new QuadTree(se, this.capacity);
-
-        let sw = new Rectangle(x - w / 2, y - h / 2, w / 2, h / 2);
+        let sw = new Rectangle(x - w, y + h, w, h);
         this.southWest = new QuadTree(sw, this.capacity);
-
-
     }
 
     insert(point) {
@@ -90,6 +100,5 @@ class QuadTree {
                     this.southEast.insert(point) ? true :
                         this.southWest.insert(point);
         }
-
     }
 };
